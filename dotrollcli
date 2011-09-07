@@ -1,0 +1,10 @@
+#!/usr/bin/python
+
+import sys, DotRoll.cli
+
+if __name__ == '__main__':
+	parser = DotRoll.cli.ArgumentParser()
+	try:
+		parser.parse(sys.argv)
+	except DotRoll.cli.ArgumentError as err:
+		print parser.error(str(err))
