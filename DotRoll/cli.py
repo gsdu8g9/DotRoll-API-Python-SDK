@@ -17,8 +17,12 @@ class ArgumentParser:
         """
         self.parser = optparse.OptionParser(description='Access the DotRoll API functionality from command line.')
         self.parser.add_option('--apikey', type='string', dest='apikey', help='The API key used to access the service')
-        self.parser.add_option('--apiendpoint', type='string', dest='apiendpoint', help='The endpoint URL used to access the service. You don\'t normally need to change this. Defaults to "%default"', default='https://webservices.dotroll.com/rest')
-        self.parser.add_option('--apiversion', type='string', dest='apiversion', help='The API version used to access the service. You don\'t normally need to change this. Defaults to "%default"', default=CURRENTAPIVERSION)
+        self.parser.add_option('--apiendpoint', type='string', dest='apiendpoint',
+                               help='The endpoint URL used to access the service. You don\'t normally need to change this. Defaults to "%default"',
+                               default='https://webservices.dotroll.com/rest')
+        self.parser.add_option('--apiversion', type='string', dest='apiversion',
+                               help='The API version used to access the service. You don\'t normally need to change this. Defaults to "%default"',
+                               default=CURRENTAPIVERSION)
         self.parser.add_option('--registercontact', dest='registercontact', action='store_true', help='Invoke contact registration')
         self.parser.add_option('--registerdomain', dest='registerdomain', action='store_true', help='Invoke domain registration')
 
