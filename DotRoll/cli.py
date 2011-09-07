@@ -43,7 +43,7 @@ class ArgumentParser:
         This function parses and validates a set of arguments.
         """
         (options, args) = self.parser.parse_args(args)
-        if len(args) < 1:
+        if len(args) < 2:
             raise ArgumentError('Incorrect number of arguments')
         if options.registercontact and options.registerdomain:
             raise ArgumentError('Only one action can be called at a time. --registercontact and --registerdomain are incompatible.')
@@ -65,6 +65,13 @@ class ArgumentParserTest(unittest.TestCase):
     """
     This class tests the DotRoll.ArgumentParser class.
     """
+
+    def test_zero_arguments(self):
+        """
+        Tests, if the parse run fails, if there are no arguments.
+        """
+        parser = ArgumentParser()
+        self.assertRaises(ArgumentError, parser.parse, ['dotrollcli'])
 
     def test_incompatible_actions(self):
         """
