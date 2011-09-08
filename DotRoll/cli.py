@@ -16,15 +16,29 @@ class ArgumentParser:
         This function sets up the option parser to use for command line processing.
         """
         self.parser = optparse.OptionParser(description='Access the DotRoll API functionality from command line.')
-        self.parser.add_option('--apikey', type='string', dest='apikey', help='The API key used to access the service')
-        self.parser.add_option('--apiendpoint', type='string', dest='apiendpoint',
-                               help='The endpoint URL used to access the service. You don\'t normally need to change this. Defaults to "%default"',
-                               default='https://webservices.dotroll.com/rest')
-        self.parser.add_option('--apiversion', type='string', dest='apiversion',
-                               help='The API version used to access the service. You don\'t normally need to change this. Defaults to "%default"',
-                               default=CURRENTAPIVERSION)
-        self.parser.add_option('--registercontact', dest='registercontact', action='store_true', help='Invoke contact registration')
-        self.parser.add_option('--registerdomain', dest='registerdomain', action='store_true', help='Invoke domain registration')
+        apigroup = optparse.OptionGroup(self.parser, "API options", "These options modify, how the API endpoint is connected")
+        apigroup.add_option('--apikey', type='string', dest='apikey', help='The API key used to access the service')
+        apigroup.add_option('--apiendpoint', type='string', dest='apiendpoint',
+                            help='The endpoint URL used to access the service. You don\'t normally need to change this. Defaults to "%default"',
+                            default='https://webservices.dotroll.com/rest')
+        apigroup.add_option('--apiversion', type='string', dest='apiversion',
+                            help='The API version used to access the service. You don\'t normally need to change this. Defaults to "%default"',
+                            default=CURRENTAPIVERSION)
+        self.parser.add_option_group(apigroup)
+        actiongroup = optparse.OptionGroup(self.parser, "Actions", "These options change, which action is called. They are mutually exclusive.")
+        actiongroup.add_option('--getdomainprices', dest='getdomainprices', action='store_true', help='Download domain pricelist')
+        actiongroup.add_option('--gethostingprices', dest='gethostingprices', action='store_true', help='Download hosting pricelist')
+        actiongroup.add_option('--getvpsprices', dest='getvpsprices', action='store_true', help='Download VPS pricelist')
+        actiongroup.add_option('--getdomainavailability', dest='getdomainavailability', action='store_true',
+                               help='Check, if a domain is available for registration.')
+        actiongroup.add_option('--getdomainlist', dest='getdomainprices', action='store_true',
+                               help='Download a list of all domains owned by the user')
+        actiongroup.add_option('--registercontact', dest='registercontact', action='store_true', help='Invoke contact registration')
+        actiongroup.add_option('--registerdomain', dest='registerdomain', action='store_true', help='Invoke domain registration')
+        self.parser.add_option_group(actiongroup)
+        pricegroup = optparse.OptionGroup(self.parser, "Price options", "Sets options for pricelist download")
+        pricegroup.add_option('--currency', dest='currency', help='Sets currency for price download operation.', default='HUF')
+        self.parser.add_option_group(pricegroup)
 
     def usage(self):
         """
@@ -42,11 +56,14 @@ class ArgumentParser:
         """
         This function parses and validates a set of arguments.
         """
-        (options, args) = self.parser.parse_args(args)
         if len(args) < 2:
             raise ArgumentError('Incorrect number of arguments')
-        if options.registercontact and options.registerdomain:
-            raise ArgumentError('Only one action can be called at a time. --registercontact and --registerdomain are incompatible.')
+        (options, args) = self.parser.parse_args(args)
+        actionargs=['getdomainprices', 'gethostingprices', 'gethostingprices', 'getvpsprices', 'registercontact', 'registerdomain']
+        for i in actionargs:
+            for j in actionargs:
+                if getattr(options, i) and getattr(options, j):
+                    raise ArgumentError('Only one action can be called at a time. --' + i + ' and --' + j + ' are incompatible.')
 
 
 class ArgumentError(Exception):
@@ -55,9 +72,15 @@ class ArgumentError(Exception):
     """
 
     def __init__(self, message):
+        """
+        Initializes the class with an error message.
+        """
         self.message = message
 
     def __str__(self):
+        """
+        Returns the error message passed to the Exception in __init__()
+        """
         return self.message
 
 
@@ -76,10 +99,16 @@ class ArgumentParserTest(unittest.TestCase):
     def test_incompatible_actions(self):
         """
         Tests, if the command line interface correctly fails, if the user tries to
-        submit a contact and domain registration at the same time.
+        submit a contact and domain registration at the same time, etc.
         """
         parser = ArgumentParser()
-        self.assertRaises(ArgumentError, parser.parse, ['--registercontact', '--registerdomain'])
+        self.assertRaises(ArgumentError, parser.parse, ['dotrollcli', '--registercontact', '--registerdomain'])
+        self.assertRaises(ArgumentError, parser.parse, ['dotrollcli', '--getdomainprices', '--registerdomain'])
+        self.assertRaises(ArgumentError, parser.parse, ['dotrollcli', '--getdomainprices', '--registercontact'])
+        self.assertRaises(ArgumentError, parser.parse, ['dotrollcli', '--gethostingprices', '--registerdomain'])
+        self.assertRaises(ArgumentError, parser.parse, ['dotrollcli', '--gethostingprices', '--registercontact'])
+        self.assertRaises(ArgumentError, parser.parse, ['dotrollcli', '--getvpsprices', '--registerdomain'])
+        self.assertRaises(ArgumentError, parser.parse, ['dotrollcli', '--getvpsprices', '--registercontact'])
 
 
 if __name__ == '__main__':
