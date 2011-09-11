@@ -224,30 +224,24 @@ class ArgumentParserTest(unittest.TestCase):
         """
         parser = ArgumentParser()
         try:
-            parser.parse(['dotrollcli', '--registercontact'])
+            parser.parse(['dotrollcli', '--getdomainlist'])
         except ArgumentError:
             self.fail('Calling a single action raises an ArgumentError')
         self.assertRaises(ArgumentError, parser.parse, ['dotrollcli',
-                                                        '--registercontact',
-                                                        '--registerdomain'])
+                                                        '--getdomainprices',
+                                                        '--gethostingprices'])
         self.assertRaises(ArgumentError, parser.parse, ['dotrollcli',
                                                         '--getdomainprices',
-                                                        '--registerdomain'])
-        self.assertRaises(ArgumentError, parser.parse, ['dotrollcli',
-                                                        '--getdomainprices',
-                                                        '--registercontact'])
+                                                        '--getvpsprices'])
         self.assertRaises(ArgumentError, parser.parse, ['dotrollcli',
                                                         '--gethostingprices',
-                                                        '--registerdomain'])
+                                                        '--getvpsprices'])
         self.assertRaises(ArgumentError, parser.parse, ['dotrollcli',
                                                         '--gethostingprices',
-                                                        '--registercontact'])
+                                                        '--getdomainavailability'])
         self.assertRaises(ArgumentError, parser.parse, ['dotrollcli',
                                                         '--getvpsprices',
-                                                        '--registerdomain'])
-        self.assertRaises(ArgumentError, parser.parse, ['dotrollcli',
-                                                        '--getvpsprices',
-                                                        '--registercontact'])
+                                                        '--getdomainlist'])
 
 
 if __name__ == '__main__':
