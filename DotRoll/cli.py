@@ -143,6 +143,11 @@ class ArgumentError(Exception):
         return self.message
 
 
+###############################################################################
+# Unit testing code                                                           #
+###############################################################################
+
+
 class ArgumentParserTest(unittest.TestCase):
     """
     This class tests the DotRoll.ArgumentParser class.
