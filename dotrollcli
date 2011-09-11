@@ -8,7 +8,7 @@ if __name__ == '__main__':
     try:
         result = parser.parse_and_call(sys.argv)
         rowfields = 0
-        width = 80
+        width = 79
         for row in result:
             if not rowfields:
                 rowfields = len(row)

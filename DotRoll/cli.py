@@ -72,12 +72,6 @@ class ArgumentParser:
                                action='store_true',
                                help='Download a list of all domains owned'
                                     ' by the user')
-        actiongroup.add_option('--registercontact',
-                               action='store_true',
-                               help='Invoke contact registration')
-        actiongroup.add_option('--registerdomain',
-                               action='store_true',
-                               help='Invoke domain registration')
         self.parser.add_option_group(actiongroup)
         pricegroup = optparse.OptionGroup(self.parser,
                                           'Price options',
@@ -87,6 +81,14 @@ class ArgumentParser:
                               help='Sets currency for pricelist download'
                                    ' operation.')
         self.parser.add_option_group(pricegroup)
+        domaingroup = optparse.OptionGroup(self.parser,
+                                          'Domain options',
+                                          'Sets options for domain'
+                                          ' functions')
+        domaingroup.add_option('--domainname',
+                              help='Sets the domain name for the current '
+                                   'operation')
+        self.parser.add_option_group(domaingroup)
 
     def usage(self):
         """
@@ -110,8 +112,7 @@ class ArgumentParser:
             raise ArgumentError('Incorrect number of arguments')
         (options, args) = self.parser.parse_args(args)
         actionargs=['getdomainprices', 'gethostingprices', 'getvpsprices',
-                    'getdomainavailability', 'getdomainlist',
-                    'registercontact', 'registerdomain']
+                    'getdomainavailability', 'getdomainlist']
         for i in actionargs:
             for j in actionargs:
                 if i != j and getattr(options, i) and getattr(options, j):
@@ -130,10 +131,14 @@ class ArgumentParser:
         return (func, options)
 
     def call(self, func, options):
+        """
+        Call corresponding API function with arguments
+        """
         qh = api.HTTPQueryHandler(options.apiendpoint, options.apiversion,
                                   options.apikey, options.username,
                                   options.password)
         apih = api.ActionHandler(qh)
+        result = ''
         if func == 'getdomainprices':
             res = apih.get_domain_prices(options.currency)
             result = []
@@ -155,9 +160,23 @@ class ArgumentParser:
                 for j in res['prices'][i].keys():
                     result.append([i, j, res['prices'][i][j]['gross'],
                                    res['prices'][i][j]['net']])
+        if func == 'getdomainavailability':
+            res = apih.get_domain_availability(options.domainname)
+            result = [[res['result']]]
+        if func == 'getdomainlist':
+            res = apih.get_domain_list()
+            result = []
+            for row in res['domains']:
+                rowresult = []
+                for j in row.keys():
+                    rowresult.append(row[j])
+                result.append(rowresult)
         return result
 
     def parse_and_call(self, args):
+        """
+        Parse arguments and call function
+        """
         (func, options) = self.parse(args)
         return self.call(func, options)
 

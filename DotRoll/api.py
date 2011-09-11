@@ -78,21 +78,24 @@ class HTTPQueryHandler(QueryHandler):
         """
         This function performs the actual HTTP request.
         """
-        url = (self.endpoint + '/' + self.apiversion + '/' + url +
+        try:
+            url = (self.endpoint + '/' + self.apiversion + '/' + url +
                '?api_key=' + self.encode(self.apikey) + '&fmt=json')
-        headers = {'Authorization': 'Basic ' +
-                   base64.b64encode(self.username + ':' +
-                                    self.password)}
-        url = url.split('/', 3)
-        if url[0] == 'http:':
-            conn = httplib.HTTPConnection(url[2])
-        else:
-            conn = httplib.HTTPSConnection(url[2])
-        conn.request(method, '/' + url[3], body, headers)
-        response = conn.getresponse()
-        body = response.read()
-        conn.close()
-        return {'code': response.status, 'body': body}
+            headers = {'Authorization': 'Basic ' +
+                       base64.b64encode(self.username + ':' +
+                                        self.password)}
+            url = url.split('/', 3)
+            if url[0] == 'http:':
+                conn = httplib.HTTPConnection(url[2])
+            else:
+                conn = httplib.HTTPSConnection(url[2])
+            conn.request(method, '/' + url[3], body, headers)
+            response = conn.getresponse()
+            body = response.read()
+            conn.close()
+            return {'code': response.status, 'body': body}
+        except:
+            raise QueryFailed()
 
     def get(self, url):
         """
