@@ -104,6 +104,7 @@ class ArgumentParser:
     def parse(self, args):
         """
         This function parses and validates a set of arguments.
+        Returns a tupple (function, arguments)
         """
         if len(args) < 2:
             raise ArgumentError('Incorrect number of arguments')
@@ -122,6 +123,43 @@ class ArgumentParser:
             not in ['HUF', 'EUR', 'USD']):
             raise ArgumentError('A valid currency code is required for'
                                 ' pricelist download')
+        func = None
+        for i in actionargs:
+            if getattr(options, i):
+                func = i
+        return (func, options)
+
+    def call(self, func, options):
+        qh = api.HTTPQueryHandler(options.apiendpoint, options.apiversion,
+                                  options.apikey, options.username,
+                                  options.password)
+        apih = api.ActionHandler(qh)
+        if func == 'getdomainprices':
+            res = apih.get_domain_prices(options.currency)
+            result = []
+            for i in res['prices'].keys():
+                for j in res['prices'][i].keys():
+                    result.append([i, j, res['prices'][i][j]['gross'],
+                                   res['prices'][i][j]['net']])
+        if func == 'gethostingprices':
+            res = apih.get_hosting_prices(options.currency)
+            result = []
+            for i in res['prices'].keys():
+                for j in res['prices'][i].keys():
+                    result.append([i, j, res['prices'][i][j]['gross'],
+                                   res['prices'][i][j]['net']])
+        if func == 'getvpsprices':
+            res = apih.get_vps_prices(options.currency)
+            result = []
+            for i in res['prices'].keys():
+                for j in res['prices'][i].keys():
+                    result.append([i, j, res['prices'][i][j]['gross'],
+                                   res['prices'][i][j]['net']])
+        return result
+
+    def parse_and_call(self, args):
+        (func, options) = self.parse(args)
+        return self.call(func, options)
 
 
 class ArgumentError(Exception):

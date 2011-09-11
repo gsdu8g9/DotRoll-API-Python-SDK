@@ -4,7 +4,16 @@ import sys, DotRoll.cli
 
 if __name__ == '__main__':
     parser = DotRoll.cli.ArgumentParser()
+    
     try:
-        parser.parse(sys.argv)
+        result = parser.parse_and_call(sys.argv)
+        rowfields = 0
+        width = 80
+        for row in result:
+            if not rowfields:
+                rowfields = len(row)
+            for field in row:
+                print str(field).ljust(int(round(width/rowfields))),
+            print
     except DotRoll.cli.ArgumentError as err:
         print parser.error(str(err))

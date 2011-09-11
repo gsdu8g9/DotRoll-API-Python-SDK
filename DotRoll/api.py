@@ -1,20 +1,22 @@
 #!/usr/bin/python
 
-import unittest, json, httplib, urllib
+import unittest, json, httplib, urllib, httplib, base64
 
 class QueryHandler:
     """
     This class is the abstract query handler for raw HTTP queries.
     """
     endpoint = ''
+    apiversion = ''
     apikey = ''
     username = ''
     password = ''
-    def __init__(self, endpoint, apikey, username, password):
+    def __init__(self, endpoint, apiversion, apikey, username, password):
         """
         Initialize the QueryHandler with authentication information.
         """
         self.endpoint = endpoint
+        self.apiversion = apiversion
         self.apikey = apikey
         self.username = username
         self.password = password
@@ -66,6 +68,71 @@ class QueryFailed(Exception):
         Return a meaningfull string representation of th exception.
         """
         return 'Query failed: ' + self.description
+
+
+class HTTPQueryHandler(QueryHandler):
+    """
+    This is the HTTP query handler used for real HTTP connections.
+    """
+    def do_request(self, method, url, body):
+        """
+        This function performs the actual HTTP request.
+        """
+        url = (self.endpoint + '/' + self.apiversion + '/' + url +
+               '?api_key=' + self.encode(self.apikey) + '&fmt=json')
+        headers = {'Authorization': 'Basic ' +
+                   base64.b64encode(self.username + ':' +
+                                    self.password)}
+        url = url.split('/', 3)
+        if url[0] == 'http:':
+            conn = httplib.HTTPConnection(url[2])
+        else:
+            conn = httplib.HTTPSConnection(url[2])
+        conn.request(method, '/' + url[3], body, headers)
+        response = conn.getresponse()
+        body = response.read()
+        conn.close()
+        return {'code': response.status, 'body': body}
+
+    def get(self, url):
+        """
+        Perform a HTTP GET query and parse the results as a JSON string.
+        """
+        result = self.do_request('GET', url, None)
+        if result['code'] != 200:
+            raise QueryFailed(result['body'])
+        return json.loads(result['body'])
+
+    def delete(self, url):
+        """
+        Perform a HTTP DELETE query and parse the results as a JSON
+        string.
+        """
+        result = self.do_request('DELETE', url, None)
+        if result['code'] != 200:
+            raise QueryFailed(result['body'])
+        return json.loads(result.body)
+
+    def post(self, url, data):
+        """
+        Perform a mock HTTP POST query and parse the results as a JSON
+        string.
+        """
+        result = self.do_request('POST', url, data)
+        if result['code'] != 201:
+            raise QueryFailed(result['body'])
+        return json.loads(result['body'])
+
+    def put(self, url, data):
+        """
+        Perform a mock HTTP PUT query and parse the results as a JSON
+        string.
+        """
+        result = self.do_request('PUT', url, data)
+        if (result['code'] != 200 and result['code'] != 201 and
+            result['code'] != 204):
+            raise QueryFailed(result['body'])
+        return json.loads(result['body'])
 
 
 class ActionHandler:
@@ -194,7 +261,8 @@ class MockQueryHandler(QueryHandler):
         string.
         """
         result = self.check_expectation(url, 'put', 'data')
-        if result['code'] != 200 and result['code'] != 201 and result['code'] != 204:
+        if (result['code'] != 200 and result['code'] != 201 and
+            result['code'] != 204):
             raise QueryFailed()
         return json.loads(result['body'])
 
@@ -224,7 +292,7 @@ class ActionHandlerTest(unittest.TestCase):
         This test uses mock testing, it does not actually perform
         HTTP queries.
         """
-        qh = MockQueryHandler('', '', '', '')
+        qh = MockQueryHandler('', '', '', '', '')
         ah = ActionHandler(qh)
         qh.add_expectation('domain/prices/HUF', 'get', '', 200, '{"new": 1}')
         qh.add_expectation('domain/prices/EUR', 'get', '', 200, '{"new": 2}')
@@ -245,7 +313,7 @@ class ActionHandlerTest(unittest.TestCase):
         This test uses mock testing, it does not actually perform
         HTTP queries.
         """
-        qh = MockQueryHandler('', '', '', '')
+        qh = MockQueryHandler('', '', '', '', '')
         ah = ActionHandler(qh)
         qh.add_expectation('domain/search/janoszen.hu', 'get', '', 200,
                            '{"status": "available"}');
@@ -258,7 +326,7 @@ class ActionHandlerTest(unittest.TestCase):
         This test uses mock testing, it does not actually perform
         HTTP queries.
         """
-        qh = MockQueryHandler('', '', '', '')
+        qh = MockQueryHandler('', '', '', '', '')
         ah = ActionHandler(qh)
         qh.add_expectation('domain/list', 'get', '', 200,
                            '["janoszen.hu"]');
