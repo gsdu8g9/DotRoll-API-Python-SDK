@@ -224,7 +224,7 @@ class ActionHandlerTest(unittest.TestCase):
         This test uses mock testing, it does not actually perform
         HTTP queries.
         """
-        qh = MockQueryHandler('', '', '')
+        qh = MockQueryHandler('', '', '', '')
         ah = ActionHandler(qh)
         qh.add_expectation('domain/prices/HUF', 'get', '', 200, '{"new": 1}')
         qh.add_expectation('domain/prices/EUR', 'get', '', 200, '{"new": 2}')
@@ -245,7 +245,7 @@ class ActionHandlerTest(unittest.TestCase):
         This test uses mock testing, it does not actually perform
         HTTP queries.
         """
-        qh = MockQueryHandler('', '', '')
+        qh = MockQueryHandler('', '', '', '')
         ah = ActionHandler(qh)
         qh.add_expectation('domain/search/janoszen.hu', 'get', '', 200,
                            '{"status": "available"}');
@@ -258,7 +258,7 @@ class ActionHandlerTest(unittest.TestCase):
         This test uses mock testing, it does not actually perform
         HTTP queries.
         """
-        qh = MockQueryHandler('', '', '')
+        qh = MockQueryHandler('', '', '', '')
         ah = ActionHandler(qh)
         qh.add_expectation('domain/list', 'get', '', 200,
                            '["janoszen.hu"]');
